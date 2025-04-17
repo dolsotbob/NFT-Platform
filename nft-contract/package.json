@@ -6,10 +6,11 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.3.0",
+    "dotenv": "^16.5.0",
     "notenv": "^2.0.3"
   },
   "scripts": {
-    "deploy": "npx hardhat run scripts/deploy.ts --network ganache",
+    "deploy": "npx hardhat run scripts/deploy.ts --network kaia",
     "mint": "ts-node web3/ethers.ts"
   }
 }

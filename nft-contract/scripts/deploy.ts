@@ -2,7 +2,7 @@ import { ethers } from 'hardhat';
 import { makeAbi } from './abiGenerator';
 
 async function main() {
-    const contractName = "MintNFT";
+    const contractName = "MyNFT";
     const name = 'Spring';
     const symbol = "SPR";
 

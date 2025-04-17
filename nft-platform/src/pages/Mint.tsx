@@ -1,84 +1,112 @@
-import React, { useState } from "react";
-// @ts-ignore
-import { uploadFileToIPFS } from "../api/pinata";
-import { ethers } from "ethers";
-// @ts-ignore
-import NFTPlatform from "../artifacts/contracts/NFTPlatform.sol/NFTPlatform.json";
-import { mint } from "../utils/ethers";
-import "../App.css";
+// NFT를 민팅하는 전체 과정을 담당하는 React 컴포넌트 
+// 1. 이미지 업로드 >> 미리보기 
+// 2. 메타데이터 입력 
+// 3. 메타데이터를 IPFS에 업로드 
+// 4. IPFS URI를 이용해 스마트 계약으로 NFT 민팅 
+// 5. 완료 시 페이지 이동
+import React, { useState } from 'react';
+import Upload from '../components/Upload';  // 이미지 업로드용 컴포넌트 
+import { mint } from '../utils/web3';  // NFT 민팅 함수 
+import { Timage, Tmetadata } from '../utils/types';
+import { uploadMetaData } from '../api/pinata';
+import Loading from '../components/Loading';
+import { useNavigate } from 'react-router-dom';
 
-const CONTRACT_ADDRESS = "YOUR_CONTRACT_ADDRESS_HERE"; // 여기에 배포된 주소 입력
+const Mint = () => {
+    // 상태 관리
+    const [img, setImg] = useState<Timage>({ url: '', preview: '' });
+    const [metadata, setMetadata] = useState<Tmetadata>({
+        name: '',
+        discription: '',
+        image: '',
+    });
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
-function Mint() {
-    const [file, setFile] = useState<File | null>(null);
-    const [preview, setPreview] = useState<string | null>(null);
-    const [uploading, setUploading] = useState(false);
-    const [minting, setMinting] = useState(false);
+    // sessionStorage에서 지갑 주소와 프라이빗 키를 가져옴 
+    const account = {
+        address: sessionStorage.getItem('address') || '',
+        privateKey: sessionStorage.getItem('privateKey') || '',
+    };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = e.target.files?.[0];
-        if (selectedFile) {
-            setFile(selectedFile);
-            setPreview(URL.createObjectURL(selectedFile));
+    // 입력 필드(name 또는 description)가 변경되면 metadata 상태 업데이트 
+    const handleMetadata = (
+        e:
+            | React.ChangeEvent<HTMLInputElement>
+            | React.ChangeEvent<HTMLTextAreaElement>
+    ) => {
+        setMetadata({
+            ...metadata,
+            [e.target.name]: e.target.value,
+        });
+    };
+
+    // 민팅 함수 
+    const handleMint = async () => {
+        setLoading(true);
+        try {
+            // 메타데이터를 IPFS에 업로드 -> URI 반환 
+            const tokenUri = await uploadMetaData(metadata);
+            if (!tokenUri) {
+                setLoading(false);
+                return;
+            }
+
+            const mintNFT = await mint(account, tokenUri);  // NFT 민팅 
+
+            if (mintNFT) {
+                navigate('/viewer');  // 민팅 성공 -> NFT 목록 페이지로 이동 
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleUploadAndMint = async () => {
-        if (!file) {
-            alert("파일을 선택해주세요.");
-            return;
-        }
-
-        setUploading(true);
-        try {
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("name", file.name);
-            formData.append("network", "public");
-
-            const ipfsUrl = await uploadFileToIPFS(formData);
-            console.log("IPFS에 업로드 완료:", ipfsUrl);
-
-            setMinting(true);
-            await mint(ipfsUrl);
-            alert("NFT 민팅 성공!");
-        } catch (error) {
-            console.error(error);
-            alert("민팅 실패!");
-        } finally {
-            setUploading(false);
-            setMinting(false);
+    // Upload 컴포넌트에서 전달받은 이미지 정보를 img와 metadata에 반영함 
+    const handleImageUpload = (img: Timage) => {
+        if (img.preview) {
+            setImg(img);
+            setMetadata((prevMetadata) => ({
+                ...prevMetadata,
+                image: img.url,  // 이미지의 IPFS URL을 metadata에 설정 
+            }));
         }
     };
 
     return (
-        <div className="container">
-            <label htmlFor="file-upload" className="btn-upload">
-                파일 선택
-            </label>
-            <input
-                id="file-upload"
-                type="file"
-                onChange={handleFileChange}
-                style={{ display: "none" }}
-            />
-
-            <button className="btn-upload"
-                onClick={handleUploadAndMint}
-                disabled={uploading || minting}
-            >
-                {uploading ? "업로드 중..." : minting ? "민팅 중..." : "파일 업로드 및 민팅"}
-            </button>
-
-            {preview && (
-                <img
-                    src={preview}
-                    alt="미리보기"
-                    style={{ width: "200px", marginTop: "10px" }}
-                />
+        <div>
+            {loading ? (
+                <Loading />  // 업로드 중일 때 로딩 화면 
+            ) : img.preview ? (
+                <div>
+                    <img src={img.preview} alt="Preview"></img>
+                    <div>
+                        {Object.keys(metadata).map(
+                            (key) =>
+                                key !== 'image' && (
+                                    <textarea
+                                        key={key}
+                                        name={key}
+                                        value={metadata[key as keyof typeof metadata]}
+                                        onChange={handleMetadata}
+                                        placeholder={`NFT ${key}`}
+                                    />
+                                )
+                        )}
+                    </div>
+                    <button
+                        onClick={handleMint}
+                    >
+                        Mint
+                    </button>
+                </div>
+            ) : (
+                <Upload handleImageUpload={handleImageUpload} />
             )}
         </div>
     );
-}
+};
 
 export default Mint;
