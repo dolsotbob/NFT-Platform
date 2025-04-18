@@ -25,6 +25,6 @@ export interface Tnft {
     network: string;
     name: any;
     image: any;
-    discription: any;
+    description: string;
     symbol: void | [] | (unknown[] & []);
 }

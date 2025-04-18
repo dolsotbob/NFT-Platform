@@ -11,6 +11,7 @@ import { Timage, Tmetadata } from '../utils/types';
 import { uploadMetaData } from '../api/pinata';
 import Loading from '../components/Loading';
 import { useNavigate } from 'react-router-dom';
+import styles from './Pages.module.css';
 
 const Mint = () => {
     // 상태 관리
@@ -76,12 +77,15 @@ const Mint = () => {
     };
 
     return (
-        <div>
+        <div className={styles.uploadContainer}>
             {loading ? (
                 <Loading />  // 업로드 중일 때 로딩 화면 
             ) : img.preview ? (
                 <div>
-                    <img src={img.preview} alt="Preview"></img>
+                    <img src={img.preview} alt="Preview"
+                        style={{ width: '300px', height: 'auto', borderRadius: '5px' }}
+                    >
+                    </img>
                     <div>
                         {Object.keys(metadata).map(
                             (key) =>
@@ -97,7 +101,7 @@ const Mint = () => {
                         )}
                     </div>
                     <button
-                        onClick={handleMint}
+                        onClick={handleMint} className={styles.btn_mint}
                     >
                         Mint
                     </button>

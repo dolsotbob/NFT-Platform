@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { uploadFileToIPFS } from '../api/pinata';   // IPFS 업로드 함수 
 import { Timage } from '../utils/types';  // 이미지 타입 정의 
+import styles from './Components.module.css';
 
 interface UploadProps {
     handleImageUpload: (img: Timage) => void;
@@ -59,21 +60,32 @@ const Upload: React.FC<UploadProps> = ({ handleImageUpload }) => {
     };
 
     return (
-        <div>
-            <div>
+        <div className={styles['upload-wrapper']}>
+            <div className={styles['upload-inner']}>
                 {preview ? (
                     <img
                         src={preview}
                         alt="Preview"
-                        style={{ width: '300px', height: 'auto', borderRadius: '5px' }}
+                        className={styles['preview-img']}
                     />
                 ) : (
-                    <input type="file" onChange={handleFileChange} />
+                    <>
+                        <input
+                            type="file"
+                            id="fileUpload"
+                            onChange={handleFileChange}
+                            className={styles.fileInput}
+                        />
+                        <label htmlFor='fileUpload' className={styles.fileLabel}>
+                            파일 선택
+                        </label>
+                    </>
                 )}
 
                 <button
                     onClick={handleUpload}
                     disabled={uploading}
+                    className={`${styles['upload-button']} ${uploading ? styles['disabled'] : ''}`}
                 >
                     {uploading ? '업로드 중...' : '파일 업로드'}
                 </button>

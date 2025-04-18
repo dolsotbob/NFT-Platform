@@ -3,6 +3,7 @@ import Loading from '../components/Loading';
 import { getNfts } from '../utils/web3';
 import { Tnft } from '../utils/types';
 import NFTCard from '../components/NFTCard';
+import styles from '../components/Components.module.css';
 
 const Viewer = () => {
   const address = sessionStorage.getItem('address') || '';
@@ -37,7 +38,7 @@ const Viewer = () => {
           {nfts.length === 0 ? (
             <p>아직 보유한 NFT가 없습니다.</p>
           ) : (
-            <div>
+            <div className={styles.nft_card_container}>
               {nfts.map((nft, index) => (
                 <NFTCard key={index} nft={nft} />
               ))}

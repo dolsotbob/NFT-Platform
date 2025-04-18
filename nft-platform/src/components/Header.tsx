@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import "./Header.css";
+import styles from "./Components.module.css";
 
 const Header = () => {
 
@@ -32,12 +32,12 @@ const Header = () => {
 
     return (
         <header>
-            <nav className="nav">
+            <nav className={styles.nav}>
                 {isAccount ? (
                     <>
-                        <Link className="nav-item" to="/">홈</Link>
-                        <Link className="nav-item" to="/viewer">NFT</Link>
-                        <Link className="nav-item" to="/mint">Mint</Link>
+                        <Link className={styles.nav_item} to="/">홈</Link>
+                        <Link className={styles.nav_item} to="/viewer">NFT</Link>
+                        <Link className={styles.nav_item} to="/mint">Mint</Link>
                     </>
                 ) : (
                     <Link className="nav-item" to="/">홈</Link>
